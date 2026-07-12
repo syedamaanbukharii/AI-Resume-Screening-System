@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+FROM python:3.12-slim AS base
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+# System deps: build tools for a few wheels, libgomp for sentence-transformers.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libgomp1 curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python deps first for layer caching.
+COPY backend/requirements.txt ./backend/requirements.txt
+RUN pip install -r backend/requirements.txt
+
+# App code (includes alembic.ini and alembic/ under backend/).
+COPY backend ./backend
+
+# Pre-download the default embedding model at build time so first request is
+# fast and the container needs no network for embeddings at runtime.
+RUN python -c "from sentence_transformers import SentenceTransformer; \
+    SentenceTransformer('BAAI/bge-small-en-v1.5')" || true
+
+EXPOSE 8000
+
+# Run migrations then start the API. Migrations are idempotent.
+CMD ["sh", "-c", "cd backend && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]

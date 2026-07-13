@@ -8,7 +8,7 @@ questions and hiring reports with an LLM — with every score traceable to why.
 
 - **Parse** resumes (PDF/DOCX/TXT) into structured profiles in a single LLM call.
 - **Rank** candidates against a job with a deterministic, five-factor weighted
-  score — skills (blended lexical + semantic), experience, education, full-document
+  score skills (blended lexical + semantic), experience, education, full-document
   semantic similarity, and certifications — where every sub-score carries evidence.
 - **Screen** each candidate with a LangGraph interview agent (conditional
   follow-up probes for unmet required skills) and a single-call hiring report,
